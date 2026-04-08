@@ -3,13 +3,15 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from app.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+from passlib.context import CryptContext
 
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password[:72])
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password[:72], hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
