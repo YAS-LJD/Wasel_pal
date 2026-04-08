@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 from pydantic import BaseModel
 from app.models.checkpoint import CheckpointStatus, CheckpointType
-
 
 class CheckpointCreate(BaseModel):
     name:        str
@@ -13,21 +12,18 @@ class CheckpointCreate(BaseModel):
     longitude:   float
     description: Optional[str] = None
 
-
 class CheckpointUpdate(BaseModel):
-    name:        Optional[str]         = None
-    name_ar:     Optional[str]         = None
-    region:      Optional[str]         = None
+    name:        Optional[str]            = None
+    name_ar:     Optional[str]            = None
+    region:      Optional[str]            = None
     type:        Optional[CheckpointType] = None
-    latitude:    Optional[float]       = None
-    longitude:   Optional[float]       = None
-    description: Optional[str]         = None
-
+    latitude:    Optional[float]          = None
+    longitude:   Optional[float]          = None
+    description: Optional[str]            = None
 
 class CheckpointStatusUpdate(BaseModel):
     status: CheckpointStatus
     reason: Optional[str] = None
-
 
 class CheckpointStatusHistoryResponse(BaseModel):
     id:         int
@@ -39,7 +35,6 @@ class CheckpointStatusHistoryResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
 
 class CheckpointResponse(BaseModel):
     id:          int

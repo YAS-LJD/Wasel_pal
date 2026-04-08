@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import HTTPException
@@ -5,6 +6,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories import incident_repo
 from app.schemas.incident import IncidentCreate, IncidentStatusUpdate, IncidentUpdate
+
+
+def _strip_tz(payload: dict) -> dict:
+    """
+    PostgreSQL columns هي TIMESTAMP WITHOUT TIME ZONE.
+    asyncpg يرفض offset-aware datetimes لهذه الأعمدة.
+    نحوّل أي datetime يحمل tzinfo إلى UTC naive قبل الحفظ.
+    """
+    for field in ("starts_at", "ends_at", "created_at", "updated_at"):
+        val = payload.get(field)
+        if isinstance(val, datetime) and val.tzinfo is not None:
+            payload[field] = val.astimezone(timezone.utc).replace(tzinfo=None)
+    return payload
 
 
 async def list_incidents(
@@ -39,15 +53,16 @@ async def get_incident(db: AsyncSession, incident_id: int):
 
 
 async def create_incident(db: AsyncSession, data: IncidentCreate, user_id: int):
-    payload = data.model_dump()
+    payload = data.model_dump(mode="python")
     payload["reported_by"] = user_id
+    _strip_tz(payload)
     return await incident_repo.create_incident(db, payload)
 
 
 async def update_incident(db: AsyncSession, incident_id: int, data: IncidentUpdate):
-    incident = await incident_repo.update_incident(
-        db, incident_id, data.model_dump(exclude_none=True)
-    )
+    payload = data.model_dump(mode="python", exclude_none=True)
+    _strip_tz(payload)
+    incident = await incident_repo.update_incident(db, incident_id, payload)
     if not incident:
         raise HTTPException(status_code=404, detail="Incident not found")
     return incident
