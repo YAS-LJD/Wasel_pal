@@ -21,6 +21,7 @@ class CheckpointStatus(str, enum.Enum):
     open       = "open"
     closed     = "closed"
     restricted = "restricted"
+    delayed    = "delayed"   # ← ناقص
     unknown    = "unknown"
 
 

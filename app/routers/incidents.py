@@ -54,7 +54,7 @@ async def create_incident(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_moderator),
 ):
-    return await svc_create(db, data, current_user.id)
+  return await svc_create(db, data, current_user["id"])
 
 
 @router.put("/{incident_id}", response_model=IncidentResponse)

@@ -4,16 +4,12 @@ from typing import Optional
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.alert import Alert
 from app.repositories import incident_repo
 from app.schemas.incident import IncidentCreate, IncidentStatusUpdate, IncidentUpdate
 
 
 def _strip_tz(payload: dict) -> dict:
-    """
-    PostgreSQL columns هي TIMESTAMP WITHOUT TIME ZONE.
-    asyncpg يرفض offset-aware datetimes لهذه الأعمدة.
-    نحوّل أي datetime يحمل tzinfo إلى UTC naive قبل الحفظ.
-    """
     for field in ("starts_at", "ends_at", "created_at", "updated_at"):
         val = payload.get(field)
         if isinstance(val, datetime) and val.tzinfo is not None:
@@ -83,4 +79,16 @@ async def change_incident_status(
     )
     if not incident:
         raise HTTPException(status_code=404, detail="Incident not found")
+
+    # إنشاء alert تلقائي لما يصير status verified
+    if data.status.value == "verified":
+        alert = Alert(
+            incident_id=incident.id,
+            region=incident.region,
+            category=incident.category.value if hasattr(incident.category, "value") else incident.category,
+            message=f"⚠️ Verified incident: {incident.title} — {incident.region or 'Unknown region'}",
+        )
+        db.add(alert)
+        await db.commit()
+
     return incident

@@ -8,6 +8,7 @@ class CheckpointCreate(BaseModel):
     name_ar:     Optional[str] = None
     region:      Optional[str] = None
     type:        CheckpointType = CheckpointType.military
+    status: CheckpointStatus = CheckpointStatus.open
     latitude:    float
     longitude:   float
     description: Optional[str] = None

@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.incident import Incident
+from app.models.incident import Incident, IncidentStatus
 
 
 async def get_all_incidents(
@@ -96,7 +96,7 @@ async def update_incident_status(
     incident = result.scalar_one_or_none()
     if not incident:
         return None
-    incident.status = new_status
+    incident.status = IncidentStatus(new_status)
     await db.commit()
     await db.refresh(incident)
     return incident

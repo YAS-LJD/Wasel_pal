@@ -10,6 +10,10 @@ class RouteRequest(BaseModel):
 
 
 class RouteResponse(BaseModel):
-    path: list[dict]
+    strategy:   str
+    path:       list[dict]
     eta_minutes: int
     risk_score: float
+    meta:       str | None = None
+
+    model_config = {"extra": "allow"}  # يسمح بالحقول الإضافية لكل strategy

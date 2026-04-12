@@ -1,38 +1,41 @@
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.database import get_db
-from app.core.security import decode_token
-from app.models.user import User, UserRole
 
-security = HTTPBearer()
+from app.config import settings
+from app.database import get_db
+
+bearer_scheme = HTTPBearer()
+
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: AsyncSession = Depends(get_db)
-) -> User:
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+):
     token = credentials.credentials
-    payload = decode_token(token)
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        user_id = payload.get("sub")
+        role    = payload.get("role", "citizen")
+        if user_id is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
-    if not payload or payload.get("type") != "access":
-        raise HTTPException(status_code=401, detail="Invalid token")
+    return {"id": int(user_id), "role": role}
 
-    user_id = payload.get("sub")
-    result = await db.execute(select(User).where(User.id == int(user_id)))
-    user = result.scalar_one_or_none()
 
-    if not user or not user.is_active:
-        raise HTTPException(status_code=401, detail="User not found or inactive")
+def require_roles(*roles: str):
+    async def checker(current_user: dict = Depends(get_current_user)):
+        if current_user["role"] not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. Required roles: {list(roles)}",
+            )
+        return current_user
+    return checker
 
-    return user
 
-async def require_moderator(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role not in [UserRole.moderator, UserRole.admin]:
-        raise HTTPException(status_code=403, detail="Moderator access required")
-    return current_user
-
-async def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return current_user
+require_moderator = require_roles("moderator", "admin")
+require_admin     = require_roles("admin")
