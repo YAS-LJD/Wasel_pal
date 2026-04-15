@@ -17,6 +17,14 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = "wasel_user"
     POSTGRES_PASSWORD: str = "wasel_pass_2026"
 
+    # Redis
+    REDIS_HOST: str = "redis"
+    REDIS_PORT: int = 6379
+
+    # External APIs
+    OPENWEATHER_API_KEY:      str = ""   # get from openweathermap.org (free)
+    OPENROUTESERVICE_API_KEY: str = ""   # get from openrouteservice.org (free)
+
     # JWT
     JWT_SECRET_KEY: str = "change-me"
     JWT_ALGORITHM: str = "HS256"

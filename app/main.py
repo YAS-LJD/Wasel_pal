@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine
+from app.services.cache_service import cache_service
 from app.routers import (
     alerts,
     auth,
@@ -23,7 +24,9 @@ from app.routers import (
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         print("Database connected successfully")
+    await cache_service.connect()
     yield
+    await cache_service.close()
     await engine.dispose()
     print("Database disconnected")
 
