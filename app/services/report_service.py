@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -84,17 +84,28 @@ class ReportService:
         return report
 
     async def _run_clustering(self, db: AsyncSession):
-        """Fetch pending reports, run clustering, and auto-create incidents + alerts."""
+        """Fetch pending reports from last 2 hours only, run clustering."""
+        # ✅ FIX: Only fetch reports from last 2 hours to limit clustering scope
+        two_hours_ago = datetime.utcnow() - timedelta(hours=2)
+
         result = await db.execute(
-            select(Report).where(Report.status == "pending")
+            select(Report)
+            .where(
+                Report.status == "pending",
+                Report.created_at >= two_hours_ago  # ← الإصلاح هون
+            )
+            .limit(500)  # ← حد أقصى 500 report
         )
         reports = result.scalars().all()
+
+        if not reports:
+            return
 
         raw = [
             {
                 "id":         r.id,
-                "latitude":   r.latitude,
-                "longitude":  r.longitude,
+                "latitude":   float(r.latitude),
+                "longitude":  float(r.longitude),
                 "category":   r.category,
                 "created_at": r.created_at,
             }
