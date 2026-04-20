@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     # JWT
     JWT_SECRET_KEY: str = "change-me"
     JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRE_MINUTES: int = 30
+    JWT_EXPIRE_MINUTES: int = 120
     JWT_REFRESH_EXPIRE_DAYS: int = 7
 
     @property

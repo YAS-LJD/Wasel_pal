@@ -19,7 +19,7 @@ async def stats_checkpoints(db: AsyncSession = Depends(get_db)):
             SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END)       AS open_count,
             SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END)     AS closed_count,
             SUM(CASE WHEN status = 'restricted' THEN 1 ELSE 0 END) AS restricted_count,
-            SUM(CASE WHEN status = 'unknown' THEN 1 ELSE 0 END)    AS unknown_count
+            SUM(CASE WHEN status = 'delayed' THEN 1 ELSE 0 END)    AS delayed_count
         FROM checkpoints
         GROUP BY region
         ORDER BY total DESC
