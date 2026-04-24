@@ -59,9 +59,8 @@ The system is designed exclusively as a backend API — no frontend is included.
 
 ## Architecture
 
-```
 ![Architecture Diagram](docs/architecture.png)
-```
+
 
 ### Layer Responsibilities
 
