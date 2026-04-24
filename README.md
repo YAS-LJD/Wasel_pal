@@ -123,9 +123,10 @@ The database consists of **11 tables** and **10 custom ENUM types**.
 ---
 
 ## API Design
-
 All endpoints follow RESTful conventions under `/api/v1/`.
-Interactive API docs available at `https://remark-splendor-junior.ngrok-free.dev/docs` (Swagger UI) and API Dog `fmnmzxpiji.apidog.io`.
+
+- 📖 **Swagger UI:** https://remark-splendor-junior.ngrok-free.dev/docs
+- 🐶 **API Dog:** https://fmnmzxpiji.apidog.io
 
 ### Endpoint Reference
 
